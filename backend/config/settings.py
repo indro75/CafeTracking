@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
 
@@ -17,7 +18,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-  
 
     # Third-party
     'rest_framework',
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -60,13 +61,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - Switched to SQLite for easy local development
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database - SQLite locally, PostgreSQL in production (Render + Neon)
+db_url = os.getenv('DATABASE_URL')
+if db_url:
+    DATABASES = {
+        'default': dj_database_url.parse(db_url, conn_max_age=60, ssl_require=True),
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -79,7 +86,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
@@ -99,7 +106,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
 }
 
-# CORS — allow the frontend dev server
+# CORS — local origins by default; more added via CORS_EXTRA_ORIGINS env var
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
@@ -108,7 +115,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-# CSRF
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
@@ -118,7 +124,23 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Business logic
 ALLOWED_CHECKIN_RADIUS_METERS = int(os.getenv('ALLOWED_CHECKIN_RADIUS_METERS', '100'))
-# Add these to the bottom of settings.py
 
+# ---- Production settings (used by Render) ----
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
-# Point to the GDAL library (Check C:\OSGeo4W\bin for the exact filename, e.g., gdal309.dll)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
+
+# Lets us whitelist the Vercel URL without editing code
+_extra = os.getenv('CORS_EXTRA_ORIGINS', '')
+if _extra:
+    CORS_ALLOWED_ORIGINS += [o.strip() for o in _extra.split(',') if o.strip()]
+    CSRF_TRUSTED_ORIGINS += [o.strip() for o in _extra.split(',') if o.strip()]
