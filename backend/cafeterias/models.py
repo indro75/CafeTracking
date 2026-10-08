@@ -7,7 +7,7 @@ class Cafeteria(models.Model):
     address = models.CharField(max_length=300)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    image = models.ImageField(upload_to='cafeterias/', blank=True, null=True)
+    image = models.URLField(max_length=500, blank=True, default='')
     rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)
     opening_time = models.TimeField(blank=True, null=True)
     closing_time = models.TimeField(blank=True, null=True)
