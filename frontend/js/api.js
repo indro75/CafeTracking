@@ -3,7 +3,7 @@
  */
 const API = (() => {
        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-   const BASE = isLocal ? 'http://localhost:8000/api' : 'https://cafetracking-api.onrender.com/api';
+const BASE = isLocal ? 'http://localhost:8000/api' : '/api';
 
     function getCookie(name) {
         const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
