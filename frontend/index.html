@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0b1f3a" />
+    <title>CafeteriaTrail — Discover Cafeterias Around You</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Leaflet Routing Machine (OSRM) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<section id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+        <div class="brand">
+            <div class="brand-logo">☕</div>
+            <h1>CafeteriaTrail</h1>
+            <p class="tagline">Discover cafeterias around you</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Sign in</button>
+            <button class="auth-tab" data-tab="register">Create account</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+            <label>Username
+                <input type="text" name="username" required autocomplete="username" />
+            </label>
+            <label>Password
+                <input type="password" name="password" required autocomplete="current-password" />
+            </label>
+            <div class="form-error" id="login-error"></div>
+            <button type="submit" class="btn btn-primary">Sign in</button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+            <label>Username
+                <input type="text" name="username" required minlength="3" autocomplete="username" />
+            </label>
+            <label>Email
+                <input type="email" name="email" autocomplete="email" />
+            </label>
+            <label>Password
+                <input type="password" name="password" required minlength="6" autocomplete="new-password" />
+            </label>
+            <label>Confirm password
+                <input type="password" name="password_confirm" required minlength="6" autocomplete="new-password" />
+            </label>
+            <div class="form-error" id="register-error"></div>
+            <button type="submit" class="btn btn-primary">Create account</button>
+        </form>
+    </div>
+</section>
+
+<!-- ============ MAIN APP ============ -->
+<div id="app" class="app hidden">
+
+    <!-- Top bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="brand-logo small">☕</div>
+            <h1 class="brand-name">CafeteriaTrail</h1>
+        </div>
+        <div class="topbar-right">
+            <button id="locate-btn" class="icon-btn" title="Locate me" aria-label="Locate me">📍</button>
+            <button id="profile-btn" class="icon-btn" title="Profile" aria-label="Profile">
+                <span id="avatar-initial">U</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page container -->
+    <main class="main">
+
+        <!-- ===== HOME ===== -->
+        <section id="page-home" class="page">
+            <div class="hero">
+                <h2>Discover Cafeterias Around You</h2>
+                <p>Find new places, explore your surroundings, and keep track of every cafeteria you've visited.</p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary" data-nav="explore">Explore Cafeterias</button>
+                    <button class="btn btn-ghost" data-nav="map">View Map</button>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Cafeterias</div></div>
+                <div class="stat visited"><div class="stat-value" id="stat-visited">—</div><div class="stat-label">Visited</div></div>
+                <div class="stat"><div class="stat-value" id="stat-remaining">—</div><div class="stat-label">Remaining</div></div>
+                <div class="stat"><div class="stat-value" id="stat-completion">—</div><div class="stat-label">Completed</div></div>
+            </div>
+
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+            <h3 class="section-title">Continue Exploring</h3>
+            <div id="home-cards" class="cards-grid"></div>
+        </section>
+
+        <!-- ===== EXPLORE ===== -->
+        <section id="page-explore" class="page hidden">
+            <div class="search-bar">
+                <input id="search-input" type="search" placeholder="Search cafeterias..." />
+            </div>
+            <div class="filters" id="filters">
+                <button class="chip active" data-filter="all">All</button>
+                <button class="chip" data-filter="nearby">Nearby</button>
+                <button class="chip" data-filter="visited">Visited</button>
+                <button class="chip" data-filter="not-visited">Not Visited</button>
+                <button class="chip" data-filter="top-rated">Highest Rated</button>
+            </div>
+            <div id="explore-cards" class="cards-grid"></div>
+            <div id="explore-empty" class="empty hidden">
+                <p>No cafeterias found.</p>
+            </div>
+        </section>
+
+        <!-- ===== MAP ===== -->
+        <section id="page-map" class="page hidden">
+            <div class="map-wrap">
+                <div id="map"></div>
+                <div class="map-filters">
+                    <button class="chip active" data-map-filter="all">All</button>
+                    <button class="chip" data-map-filter="visited">Visited</button>
+                    <button class="chip" data-map-filter="not-visited">Not Visited</button>
+                </div>
+                <button id="locate-map-btn" class="map-locate-btn" aria-label="Locate me">📍 Locate me</button>
+            </div>
+        </section>
+
+        <!-- ===== VISITED ===== -->
+        <section id="page-visited" class="page hidden">
+            <div class="journey-header">
+                <h2>Your Journey</h2>
+                <p id="journey-sub">0 / 0 Cafeterias Visited</p>
+                <div class="progress-bar"><div class="progress-fill" id="journey-fill" style="width:0%"></div></div>
+            </div>
+            <div class="sort-row">
+                <label>Sort by
+                    <select id="visited-sort">
+                        <option value="recent">Recently visited</option>
+                        <option value="name">Name</option>
+                    </select>
+                </label>
+            </div>
+            <div id="visited-cards" class="cards-grid"></div>
+            <div id="visited-empty" class="empty">
+                <p>You haven't visited any cafeterias yet.</p>
+                <button class="btn btn-primary" data-nav="explore">Start Exploring</button>
+            </div>
+        </section>
+
+        <!-- ===== PROFILE ===== -->
+        <section id="page-profile" class="page hidden">
+            <div class="profile-card">
+                <div class="profile-avatar" id="profile-avatar">U</div>
+                <h2 id="profile-username">—</h2>
+                <p id="profile-email" class="muted">—</p>
+                <p class="muted small">Joined <span id="profile-joined">—</span></p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat"><div class="stat-value" id="profile-visited">0</div><div class="stat-label">Visited</div></div>
+                <div class="stat"><div class="stat-value" id="profile-completion">0%</div><div class="stat-label">Completed</div></div>
+                <div class="stat"><div class="stat-value" id="profile-checkins">0</div><div class="stat-label">Check-ins</div></div>
+            </div>
+            <button id="logout-btn" class="btn btn-ghost full">Log out</button>
+        </section>
+
+        <!-- ===== CAFETERIA DETAILS ===== -->
+        <section id="page-detail" class="page hidden">
+            <button class="back-btn" data-nav-back>← Back</button>
+            <div class="detail-hero" id="detail-hero"></div>
+            <div class="detail-body">
+                <div class="detail-header">
+                    <h2 id="detail-name">—</h2>
+                    <div class="detail-rating" id="detail-rating">—</div>
+                </div>
+                <p class="muted" id="detail-address">—</p>
+                <p class="detail-distance muted" id="detail-distance">—</p>
+                <p id="detail-description"></p>
+                <div class="detail-meta" id="detail-meta"></div>
+                <div class="detail-visited" id="detail-visited"></div>
+
+                <div class="detail-actions">
+                    <button id="detail-directions-btn" class="btn btn-primary">Get Directions</button>
+                    <button id="detail-checkin-btn" class="btn btn-success">Check In</button>
+                </div>
+
+                <div class="detail-map-wrap">
+                    <div id="detail-map"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-nav="home"><span class="nav-icon">🏠</span><span>Home</span></button>
+        <button class="nav-item" data-nav="explore"><span class="nav-icon">🗺</span><span>Explore</span></button>
+        <button class="nav-item" data-nav="map"><span class="nav-icon">📍</span><span>Map</span></button>
+        <button class="nav-item" data-nav="visited"><span class="nav-icon">✓</span><span>Visited</span></button>
+        <button class="nav-item" data-nav="profile"><span class="nav-icon">👤</span><span>Profile</span></button>
+    </nav>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">Loading...</p>
+</div>
+
+<!-- Scripts (order matters) -->
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/gps.js"></script>
+<script src="js/routing.js"></script>
+<script src="js/map.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
