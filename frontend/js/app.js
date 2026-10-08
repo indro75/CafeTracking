@@ -45,6 +45,7 @@ const App = (() => {
             ]);
             cafeterias = list;
             visitedIds = new Set(visits.map(v => v.cafeteria));
+            applyDistances();  
             Map.setCafeterias(cafeterias);
             Map.setVisited(visitedIds);
             updateStats(stats);
@@ -57,11 +58,15 @@ const App = (() => {
             UI.hideLoading();
         }
     }
-
-    function refreshDistances() {
+        function applyDistances() {
         const pos = GPS.get();
         if (pos.lat == null) return;
-        cafeterias.forEach(c => { c.distance = GPS.distanceTo(c.latitude, c.longitude); });
+        cafeterias.forEach(c => {
+            c.distance = GPS.distanceTo(c.latitude, c.longitude);
+        });
+    }
+        function refreshDistances() {
+        applyDistances();
         Map.setCafeterias(cafeterias);
         renderHome();
         renderExplore();
@@ -152,14 +157,14 @@ const App = (() => {
     }
 
     // ============ Home ============
-    function renderHome() {
+        function renderHome() {
         const container = document.getElementById('home-cards');
-        const toExplore = cafeterias
+        const list = cafeterias
             .filter(c => !visitedIds.has(c.id))
             .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
             .slice(0, 6);
-        const list = toExplore.length ? toExplore : cafeterias.slice(0, 6);
-        container.innerHTML = list.map(c => UI.cafeteriaCard(c)).join('');
+        const finalList = list.length ? list : cafeterias.slice(0, 6);
+        container.innerHTML = finalList.map(c => UI.cafeteriaCard(c)).join('');
         bindCardActions(container);
     }
 
@@ -179,7 +184,7 @@ const App = (() => {
         });
     }
 
-    function renderExplore() {
+        function renderExplore() {
         let list = [...cafeterias];
         if (searchQuery) {
             list = list.filter(c =>
@@ -187,20 +192,19 @@ const App = (() => {
                 (c.address || '').toLowerCase().includes(searchQuery)
             );
         }
-        switch (currentFilter) {
-            case 'nearby':
-                list.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-                break;
-            case 'visited':
-                list = list.filter(c => visitedIds.has(c.id));
-                break;
-            case 'not-visited':
-                list = list.filter(c => !visitedIds.has(c.id));
-                break;
-            case 'top-rated':
-                list.sort((a, b) => b.rating - a.rating);
-                break;
+        if (currentFilter === 'visited') {
+            list = list.filter(c => visitedIds.has(c.id));
+        } else if (currentFilter === 'not-visited') {
+            list = list.filter(c => !visitedIds.has(c.id));
         }
+
+        if (currentFilter === 'top-rated') {
+            list.sort((a, b) => b.rating - a.rating);
+        } else {
+            // DEFAULT & NEARBY: lowest distance first, then sequentially
+            list.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+        }
+
         const container = document.getElementById('explore-cards');
         const empty = document.getElementById('explore-empty');
         if (!list.length) {
@@ -302,7 +306,6 @@ const App = (() => {
             checkinBtn.textContent = 'Check In';
         }
     }
-
     function renderDetailDistance(c) {
         const pos = GPS.get();
         const el = document.getElementById('detail-distance');
