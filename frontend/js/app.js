@@ -16,7 +16,6 @@ const App = (() => {
         bindDetail();
         bindProfile();
         document.getElementById('locate-btn').onclick = locateMe;
-        injectBackButtons(); // Dynamically adds back buttons to all pages
          window.addEventListener('popstate', (e) => {
             const page = (e.state && e.state.page) ? e.state.page : 'home';
             navigate(page, false);
@@ -24,27 +23,6 @@ const App = (() => {
         Auth.init();
     }
 
-    // Adds a back button to the top of every page except Home
-    function injectBackButtons() {
-        document.querySelectorAll('.page').forEach(page => {
-            if (page.id === 'page-home') return; // Skip home page
-            if (page.querySelector('.injected-back-btn')) return; // Don't add it twice
-
-            const btn = document.createElement('button');
-            btn.className = 'injected-back-btn back-btn';
-            btn.innerHTML = '← Back';
-            btn.onclick = () => {
-                // If leaving the detail page, go to Explore. Otherwise, go Home.
-                if (page.id === 'page-detail') {
-                    navigate('explore');
-                } else {
-                    navigate('home');
-                }
-            };
-            // Put the button at the very top of the page
-            page.prepend(btn);
-        });
-    }
 
     function locateMe() {
         UI.showLoading('Finding your location...');
