@@ -1,5 +1,5 @@
 /**
- * App controller — ties everything together. (FIXED version)
+ * App controller — ties everything together. (FIXED version with Nearby & Back buttons)
  */
 const App = (() => {
     let cafeterias = [];
@@ -15,7 +15,30 @@ const App = (() => {
         bindDetail();
         bindProfile();
         document.getElementById('locate-btn').onclick = locateMe;
+        injectBackButtons(); // Dynamically adds back buttons to all pages
         Auth.init();
+    }
+
+    // Adds a back button to the top of every page except Home
+    function injectBackButtons() {
+        document.querySelectorAll('.page').forEach(page => {
+            if (page.id === 'page-home') return; // Skip home page
+            if (page.querySelector('.injected-back-btn')) return; // Don't add it twice
+
+            const btn = document.createElement('button');
+            btn.className = 'injected-back-btn back-btn';
+            btn.innerHTML = '← Back';
+            btn.onclick = () => {
+                // If leaving the detail page, go to Explore. Otherwise, go Home.
+                if (page.id === 'page-detail') {
+                    navigate('explore');
+                } else {
+                    navigate('home');
+                }
+            };
+            // Put the button at the very top of the page
+            page.prepend(btn);
+        });
     }
 
     function locateMe() {
@@ -27,6 +50,7 @@ const App = (() => {
 
     async function onAuthSuccess() {
         GPS.startWatch();
+        GPS.onChange(refreshDistances); // FIX: Re-sorts lists instantly whenever GPS updates!
         try { await GPS.getCurrent(); } catch (e) { console.warn(e.message); }
         Map.init();
         await loadAll();
@@ -58,14 +82,16 @@ const App = (() => {
             UI.hideLoading();
         }
     }
-        function applyDistances() {
+
+    function applyDistances() {
         const pos = GPS.get();
         if (pos.lat == null) return;
         cafeterias.forEach(c => {
             c.distance = GPS.distanceTo(c.latitude, c.longitude);
         });
     }
-        function refreshDistances() {
+
+    function refreshDistances() {
         applyDistances();
         Map.setCafeterias(cafeterias);
         renderHome();
@@ -157,7 +183,7 @@ const App = (() => {
     }
 
     // ============ Home ============
-        function renderHome() {
+    function renderHome() {
         const container = document.getElementById('home-cards');
         const list = cafeterias
             .filter(c => !visitedIds.has(c.id))
@@ -184,7 +210,7 @@ const App = (() => {
         });
     }
 
-        function renderExplore() {
+    function renderExplore() {
         let list = [...cafeterias];
         if (searchQuery) {
             list = list.filter(c =>
@@ -306,6 +332,7 @@ const App = (() => {
             checkinBtn.textContent = 'Check In';
         }
     }
+    
     function renderDetailDistance(c) {
         const pos = GPS.get();
         const el = document.getElementById('detail-distance');

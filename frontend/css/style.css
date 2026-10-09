@@ -483,3 +483,20 @@ img { max-width: 100%; display: block; }
     .topbar { padding: 14px 32px; }
     .page { padding: 28px 32px; }
 }
+/* Back Button Styling */
+.back-btn {
+    background: none;
+    border: none;
+    color: #007bff; /* Change this to match your app's primary color if needed */
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.back-btn:hover {
+    text-decoration: underline;
+}
