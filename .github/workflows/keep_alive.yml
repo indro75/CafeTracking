@@ -1,0 +1,13 @@
+name: Keep Render Awake
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: "*/10 * * * *"
+
+jobs:
+  ping-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send a ping to the backend
+        run: curl -s https://cafetracking-api.onrender.com/admin/ > /dev/null
