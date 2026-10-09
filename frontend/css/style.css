@@ -483,20 +483,23 @@ img { max-width: 100%; display: block; }
     .topbar { padding: 14px 32px; }
     .page { padding: 28px 32px; }
 }
-/* Back Button Styling */
+/* Minimal & Transparent Back Button */
 .back-btn {
-    background: none;
+    background: transparent;
     border: none;
-    color: #007bff; /* Change this to match your app's primary color if needed */
-    font-size: 1.1rem;
-    font-weight: 600;
+    color: #6b7280; /* Subtle, soft gray */
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    padding: 10px 15px;
-    margin-bottom: 10px;
+    padding: 8px 0; /* No horizontal padding to keep it tight */
+    margin: 12px 0 16px 0;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    transition: all 0.2s ease;
 }
+
 .back-btn:hover {
-    text-decoration: underline;
+    color: #111827; /* Turns dark gray/black on hover */
+    transform: translateX(-3px); /* Subtle slide to the left */
 }
