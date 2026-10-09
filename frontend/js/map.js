@@ -20,6 +20,7 @@ const Map = (() => {
     function init() {
         if (map) return;
         map = L.map('map', { zoomControl: true }).setView([22.55, 88.35], 13);
+        map.zoomControl.setPosition('bottomleft');
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19,

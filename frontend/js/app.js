@@ -7,6 +7,7 @@ const App = (() => {
     let currentFilter = 'all';
     let searchQuery = '';
     let currentDetail = null;
+    let firstNav = true;
 
     function init() {
         bindAuthForms();
@@ -16,6 +17,10 @@ const App = (() => {
         bindProfile();
         document.getElementById('locate-btn').onclick = locateMe;
         injectBackButtons(); // Dynamically adds back buttons to all pages
+         window.addEventListener('popstate', (e) => {
+            const page = (e.state && e.state.page) ? e.state.page : 'home';
+            navigate(page, false);
+        });
         Auth.init();
     }
 
@@ -123,7 +128,7 @@ const App = (() => {
         document.getElementById('profile-btn').onclick = () => navigate('profile');
     }
 
-    function navigate(page) {
+    function navigate(page, push = true) {
         document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
         const target = document.getElementById('page-' + page);
         if (target) target.classList.remove('hidden');
@@ -134,6 +139,16 @@ const App = (() => {
 
         if (page === 'map') Map.ensureInit();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Phone/browser back button support
+        if (push) {
+            if (firstNav) {
+                history.replaceState({ page: page }, '', '#' + page);
+                firstNav = false;
+            } else {
+                history.pushState({ page: page }, '', '#' + page);
+            }
+        }
     }
 
     // ============ Auth forms ============

@@ -483,18 +483,8 @@ img { max-width: 100%; display: block; }
     .topbar { padding: 14px 32px; }
     .page { padding: 28px 32px; }
 }
-.back-btn {
-    all: unset;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #ffffff;
-    color: #333;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 8px 16px;
-    margin: 10px 16px 12px;
-    border-radius: 999px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
+@media (max-width: 640px) {
+    .leaflet-control-zoom {
+        margin-top: 48px !important;
+    }
 }
