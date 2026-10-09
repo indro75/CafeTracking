@@ -483,30 +483,18 @@ img { max-width: 100%; display: block; }
     .topbar { padding: 14px 32px; }
     .page { padding: 28px 32px; }
 }
-/* ===== Minimal transparent back button ===== */
 .back-btn {
-    all: unset;                 /* wipe every default button style */
+    all: unset;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: transparent;
-    border: none;
-    outline: none;              /* kills the blue focus box */
-    box-shadow: none;
-    color: #64748b;             /* quiet gray */
+    background: #ffffff;
+    color: #333;
     font-size: 0.9rem;
-    font-weight: 500;
-    padding: 6px 0;
+    font-weight: 600;
+    padding: 8px 16px;
     margin: 10px 16px 12px;
+    border-radius: 999px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent; /* no flash when tapped on mobile */
-}
-
-.back-btn:hover,
-.back-btn:focus,
-.back-btn:active {
-    outline: none;
-    border: none;
-    background: transparent;
-    color: #0f172a;             /* darkens slightly on tap/hover */
 }
