@@ -483,23 +483,30 @@ img { max-width: 100%; display: block; }
     .topbar { padding: 14px 32px; }
     .page { padding: 28px 32px; }
 }
-/* Minimal & Transparent Back Button */
+/* ===== Minimal transparent back button ===== */
 .back-btn {
-    background: transparent;
-    border: none;
-    color: #6b7280; /* Subtle, soft gray */
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 0; /* No horizontal padding to keep it tight */
-    margin: 12px 0 16px 0;
+    all: unset;                 /* wipe every default button style */
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    outline: none;              /* kills the blue focus box */
+    box-shadow: none;
+    color: #64748b;             /* quiet gray */
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 6px 0;
+    margin: 10px 16px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* no flash when tapped on mobile */
 }
 
-.back-btn:hover {
-    color: #111827; /* Turns dark gray/black on hover */
-    transform: translateX(-3px); /* Subtle slide to the left */
+.back-btn:hover,
+.back-btn:focus,
+.back-btn:active {
+    outline: none;
+    border: none;
+    background: transparent;
+    color: #0f172a;             /* darkens slightly on tap/hover */
 }
