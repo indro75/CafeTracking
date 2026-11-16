@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from .models import Cafeteria
@@ -21,7 +21,7 @@ def haversine_distance(lat1, lng1, lat2, lng2):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def cafeteria_list(request):
     user = request.user
     lat = request.query_params.get('lat')
@@ -30,8 +30,9 @@ def cafeteria_list(request):
 
     qs = Cafeteria.objects.all()
 
-    visited_ids = set(
-        Visit.objects.filter(user=user).values_list('cafeteria_id', flat=True)
+    visited_ids = (
+        set(Visit.objects.filter(user=user).values_list('cafeteria_id', flat=True))
+        if user.is_authenticated else set()
     )
 
     if lat and lng:
@@ -62,7 +63,7 @@ def cafeteria_list(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def cafeteria_detail(request, pk):
     try:
         caf = Cafeteria.objects.get(pk=pk)
@@ -74,7 +75,10 @@ def cafeteria_detail(request, pk):
     lng = request.query_params.get('lng')
 
     data = CafeteriaSerializer(caf).data
-    data['is_visited'] = Visit.objects.filter(user=user, cafeteria=caf).exists()
+    data['is_visited'] = (
+        Visit.objects.filter(user=user, cafeteria=caf).exists()
+        if user.is_authenticated else False
+    )
 
     if lat and lng:
         try:
@@ -87,7 +91,7 @@ def cafeteria_detail(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def nearby_cafeterias(request):
     lat = request.query_params.get('lat')
     lng = request.query_params.get('lng')
@@ -111,8 +115,9 @@ def nearby_cafeterias(request):
 
     cafeterias_with_distance.sort(key=lambda x: x[1])
 
-    visited_ids = set(
-        Visit.objects.filter(user=request.user).values_list('cafeteria_id', flat=True)
+    visited_ids = (
+        set(Visit.objects.filter(user=request.user).values_list('cafeteria_id', flat=True))
+        if request.user.is_authenticated else set()
     )
     data = CafeteriaSerializer([c[0] for c in cafeterias_with_distance], many=True).data
     for i, item in enumerate(data):

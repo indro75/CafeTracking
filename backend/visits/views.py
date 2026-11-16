@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from cafeterias.models import Cafeteria
@@ -73,18 +73,20 @@ def checkin_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def visit_list_view(request):
+    if not request.user.is_authenticated:
+        return Response([])
     visits = Visit.objects.filter(user=request.user).select_related('cafeteria')
     data = VisitSerializer(visits, many=True).data
     return Response(data)
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def stats_view(request):
     user = request.user
-    visited = Visit.objects.filter(user=user).count()
+    visited = Visit.objects.filter(user=user).count() if user.is_authenticated else 0
     total = Cafeteria.objects.count()
     remaining = max(total - visited, 0)
     completion = round((visited / total) * 100, 1) if total else 0
